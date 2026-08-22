@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rotation">
+  <circle cx="32" cy="32" r="31" fill="#0a0a0f"/>
+  <circle cx="32" cy="32" r="24" fill="none" stroke="#3a3a4a" stroke-width="1.6"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#3a3a4a" stroke-width="1.6"/>
+  <circle cx="32" cy="32" r="12" fill="none" stroke="#3a3a4a" stroke-width="1.6"/>
+  <circle cx="32" cy="32" r="7" fill="#ff5a3c"/>
+  <circle cx="32" cy="32" r="2.2" fill="#0a0a0f"/>
+</svg>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rotation</title>
+<meta name="description" content="Listening statistics for your Navidrome server.">
+<meta name="theme-color" content="#0a0a0e">
+<link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css?v={{ version }}">
+</head>
+<body>
+
+<!-- ── Sign in ───────────────────────────────────────────────── -->
+<section id="gate" class="gate">
+  <form class="gate-card" id="login-form" autocomplete="on">
+    <div class="gate-mark" aria-hidden="true"></div>
+    <h1 class="brand">Rotation</h1>
+    <p class="gate-sub" data-i18n="gate.sub">Deine Navidrome-Zugangsdaten.</p>
+    <label class="field">
+      <span data-i18n="gate.user">Benutzername</span>
+      <input id="login-user" name="username" autocomplete="username" required>
+    </label>
+    <label class="field">
+      <span data-i18n="gate.pass">Passwort</span>
+      <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button class="btn primary" type="submit" id="login-btn" data-i18n="gate.go">Anmelden</button>
+    <p class="gate-err" id="login-err" hidden></p>
+  </form>
+</section>
+
+<!-- ── App ───────────────────────────────────────────────────── -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="top-left">
+      <span class="mark" aria-hidden="true"></span>
+      <span class="brand">Rotation</span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-view="overview" data-i18n="nav.overview">Übersicht</button>
+      <button class="tab" data-view="history" data-i18n="nav.history">Verlauf</button>
+      <button class="tab" data-view="wrapped" data-i18n="nav.wrapped">Rückblick</button>
+      <button class="tab" data-view="friends" data-i18n="nav.friends">Freunde</button>
+      <button class="tab" data-view="settings" data-i18n="nav.settings">Einstellungen</button>
+    </nav>
+    <div class="top-right">
+      <select id="lang" class="mini" aria-label="Sprache">
+        <option value="de">Deutsch</option>
+        <option value="en">English</option>
+      </select>
+      <button class="icon-btn" id="theme" title="Theme" aria-label="Theme">◐</button>
+      <span class="who" id="who"></span>
+    </div>
+  </header>
+
+  <div class="viewing" id="viewing" hidden>
+    <span id="viewing-text"></span>
+    <button class="link" id="viewing-back" data-i18n="view.back">zurück zu mir</button>
+  </div>
+
+  <!-- Overview -->
+  <main class="view is-active" id="view-overview">
+    <div id="season-banner" hidden></div>
+    <div class="range" id="range">
+      <button class="chip" data-range="7d">7 <span data-i18n="range.days">Tage</span></button>
+      <button class="chip is-active" data-range="30d">30 <span data-i18n="range.days">Tage</span></button>
+      <button class="chip" data-range="90d">90 <span data-i18n="range.days">Tage</span></button>
+      <button class="chip" data-range="year" data-i18n="range.year">Dieses Jahr</button>
+      <button class="chip" data-range="all" data-i18n="range.all">Gesamt</button>
+    </div>
+
+    <section class="headline" id="headline"></section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2 data-i18n="card.timeline">Verlauf</h2>
+        <div id="timeline"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="card.clock">Tageszeit</h2>
+        <div id="clock"></div>
+      </div>
+    </section>
+
+    <section class="grid-3">
+      <div class="card">
+        <h2 data-i18n="card.artists">Top-Künstler</h2>
+        <ol class="toplist" id="top-artists"></ol>
+      </div>
+      <div class="card">
+        <h2 data-i18n="card.tracks">Top-Titel</h2>
+        <ol class="toplist" id="top-tracks"></ol>
+        <!-- Under the list, not beside the heading: in the three-column row
+             this card would otherwise start its list lower than its
+             neighbours, and the ranks would no longer line up across the
+             page. -->
+        <div class="card-foot">
+          <button class="btn ghost mini" id="make-playlist"
+                  data-i18n="playlist.make">Playlist erstellen</button>
+          <button class="linky" id="drop-playlist" hidden
+                  data-i18n="playlist.drop">nicht mehr pflegen</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="card.albums">Top-Alben</h2>
+        <ol class="toplist" id="top-albums"></ol>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2 data-i18n="card.genres">Genres</h2>
+        <div id="genres"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="card.discoveries">Neu entdeckt</h2>
+        <ul class="chips" id="discoveries"></ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- History -->
+  <main class="view" id="view-history">
+    <section class="card">
+      <h2 data-i18n="card.heatmap">Wochentag und Uhrzeit</h2>
+      <div id="heatmap"></div>
+    </section>
+    <section class="card">
+      <h2 data-i18n="card.recent">Zuletzt gehört</h2>
+      <ul class="plays" id="recent"></ul>
+    </section>
+  </main>
+
+  <!-- Wrapped -->
+  <main class="view" id="view-wrapped">
+    <div class="wrapped-head">
+      <select id="wrapped-year" class="mini"></select>
+    </div>
+    <div id="wrapped"></div>
+  </main>
+
+  <!-- Friends -->
+  <main class="view" id="view-friends">
+    <section class="card">
+      <h2 data-i18n="card.friends">Freunde</h2>
+      <p class="hint" data-i18n="friends.hint">
+        Statistiken sieht nur, wer sich gegenseitig hinzugefügt hat.
+      </p>
+      <div id="friends"></div>
+    </section>
+    <section class="card" id="compare-card" hidden>
+      <h2 data-i18n="card.compare">Vergleich</h2>
+      <div id="compare"></div>
+    </section>
+  </main>
+
+  <!-- Settings -->
+  <main class="view" id="view-settings">
+    <section class="card">
+      <h2 data-i18n="card.account">Konto</h2>
+      <dl class="facts" id="account"></dl>
+      <label class="switch">
+        <input type="checkbox" id="discoverable">
+        <span data-i18n="settings.discoverable">Für andere auffindbar</span>
+      </label>
+      <p class="hint" data-i18n="settings.discoverable.hint">
+        Ausgeschaltet erscheinst du in keiner Vorschlagsliste. Bestehende
+        Freundschaften bleiben bestehen.
+      </p>
+      <div class="accent-row">
+        <span data-i18n="settings.accent">Farbe</span>
+        <div class="swatches" id="accent-picker"></div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="season-always">
+        <span data-i18n="settings.season">Story ganzjährig im Rückblick zeigen</span>
+      </label>
+      <p class="hint" data-i18n="settings.season.hint">
+        Betrifft nur den Knopf auf der Rückblick-Seite. Auf der Startseite
+        meldet sich der Rückblick immer nur vom 1. Dezember bis 31. Januar.
+      </p>
+      <label class="switch">
+        <input type="checkbox" id="season-notify">
+        <span data-i18n="settings.notify">An den Rückblick erinnern</span>
+      </label>
+      <p class="hint" data-i18n="settings.notify.hint">
+        Der Browser meldet sich, sobald der Rückblick da ist – dafür muss
+        Rotation einmal geöffnet werden.
+      </p>
+      <button class="btn" id="logout" data-i18n="settings.logout">Abmelden</button>
+    </section>
+    <section class="card">
+      <h2 data-i18n="card.about">Über</h2>
+      <p class="hint">
+        Rotation <span id="version"></span> ·
+        <a href="https://github.com/Jannehy/rotation" target="_blank" rel="noopener">GitHub</a>
+      </p>
+      <p class="hint" data-i18n="about.data">
+        Alle Zahlen stammen aus der Wiedergabe-Historie deines Navidrome-Servers.
+        Rotation greift ausschließlich lesend darauf zu.
+      </p>
+    </section>
+  </main>
+</div>
+
+<!-- ── One item, in detail ───────────────────────────────────── -->
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="sheet-panel">
+    <button class="sheet-close" id="sheet-close" aria-label="Schließen">×</button>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<!-- The year as a story: full screen, running by itself. -->
+<div class="story" id="story" hidden>
+  <div class="st-bars" id="story-bars"></div>
+  <div class="st-top">
+    <button class="st-icon" id="story-mute" aria-label="Ton">🔊</button>
+    <button class="st-icon" id="story-close" aria-label="Schließen">×</button>
+  </div>
+  <div class="st-stage" id="story-body"></div>
+</div>
+
+<script src="/static/app.js?v={{ version }}"></script>
+<script src="/static/story.js?v={{ version }}"></script>
+</body>
+</html>

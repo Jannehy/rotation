@@ -1,0 +1,19 @@
+services:
+  rotation:
+    build: .
+    # After publishing: image: ghcr.io/jannehy/rotation:latest
+    container_name: rotation
+    ports:
+      - "8770:8770"
+    volumes:
+      # Navidrome's data directory, READ-ONLY. Rotation never writes here.
+      # Mount the directory, not just the file – SQLite needs the -wal and
+      # -shm files next to it.
+      - /etc/navidrome:/navidrome:ro
+      # Rotation's own small database: friendships and settings.
+      - ./data:/data
+    environment:
+      # How Rotation reaches Navidrome to verify sign-ins and fetch artwork.
+      - NAVIDROME_URL=http://192.168.178.24:4533
+      - TZ=Europe/Berlin
+    restart: unless-stopped
