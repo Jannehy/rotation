@@ -30,7 +30,17 @@ themselves back into your library.
 
 Native apps: [iOS](https://github.com/Jannehy/rotation-ios) ·
 [Android](https://github.com/Jannehy/rotation-android). Both speak the same API
-as the browser — nothing to enable on the server.
+as the browser — nothing to enable on the server. The iPhone app is on the App
+Store; the Android one follows shortly.
+
+<p align="center">
+  <a href="https://apps.apple.com/app/id6804433285">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/app-store-badge-white.svg">
+      <img src="docs/app-store-badge-black.svg" height="48" alt="Download on the App Store">
+    </picture>
+  </a>
+</p>
 
 ## How it fits together
 
