@@ -176,6 +176,13 @@ def create_app() -> Flask:
     @app.get("/api/me")
     def me():
         user_id = require_user()
+        if db.user_by_id(user_id) is None:
+            # The session names an account Navidrome does not have. That used
+            # to mean an endless empty page: every query asked for a user id
+            # nobody owns and got nothing back. Ending the session sends the
+            # client to the sign-in screen, where the current id is picked up.
+            session.clear()
+            abort(401)
         bounds = stats.bounds(user_id)
         profile = store.profile(user_id)
         return jsonify({

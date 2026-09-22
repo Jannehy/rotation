@@ -95,10 +95,52 @@ class Store:
 
     # -- profiles ---------------------------------------------------------
 
+    @staticmethod
+    def _adopt_renamed_id(conn, user_id: str, user_name: str) -> None:
+        """Carries a profile over when Navidrome hands the account a new id.
+
+        Everything Rotation stores is keyed by the Navidrome user id, and that
+        id is not as permanent as it looks: the 0.64 update handed every
+        account a new one. Navidrome moved its own rows along, Rotation's did
+        not - friendships and playlist rules were suddenly attached to an
+        account that no longer existed, and the next sign-in started a blank
+        second profile beside the old one. The account name is what stays, so
+        it is what the old rows are found by.
+        """
+        old_ids = [r["user_id"] for r in conn.execute(
+            "SELECT user_id FROM profile WHERE user_name = ? AND user_id <> ?",
+            (user_name, user_id))]
+        for old_id in old_ids:
+            # OR IGNORE throughout: the new id may already carry a row that
+            # the old one would collide with. The newer row wins, the stale
+            # one goes - it describes the same person either way.
+            conn.execute("UPDATE OR IGNORE friend_edge SET from_id = ? WHERE from_id = ?",
+                         (user_id, old_id))
+            conn.execute("UPDATE OR IGNORE friend_edge SET to_id = ? WHERE to_id = ?",
+                         (user_id, old_id))
+            conn.execute("DELETE FROM friend_edge WHERE from_id = ? OR to_id = ?",
+                         (old_id, old_id))
+            conn.execute("DELETE FROM friend_edge WHERE from_id = to_id")
+            conn.execute("UPDATE OR IGNORE playlist_rule SET user_id = ? WHERE user_id = ?",
+                         (user_id, old_id))
+            conn.execute("DELETE FROM playlist_rule WHERE user_id = ?", (old_id,))
+            # Keep the day they actually joined, not the day of the rename.
+            conn.execute(
+                """
+                UPDATE profile SET joined_at = MIN(joined_at,
+                    (SELECT joined_at FROM profile WHERE user_id = ?))
+                WHERE user_id = ?
+                """,
+                (old_id, user_id))
+            conn.execute("UPDATE OR IGNORE profile SET user_id = ? WHERE user_id = ?",
+                         (user_id, old_id))
+            conn.execute("DELETE FROM profile WHERE user_id = ?", (old_id,))
+
     def touch(self, user_id: str, user_name: str, display_name: str = "") -> None:
         """Records that this Navidrome user has signed in to Rotation."""
         now = int(time.time())
         with self._connect() as conn:
+            self._adopt_renamed_id(conn, user_id, user_name)
             conn.execute(
                 """
                 INSERT INTO profile (user_id, user_name, display_name, joined_at, last_seen)
