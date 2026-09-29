@@ -30,8 +30,7 @@ themselves back into your library.
 
 Native apps: [iOS](https://github.com/Jannehy/rotation-ios) ·
 [Android](https://github.com/Jannehy/rotation-android). Both speak the same API
-as the browser — nothing to enable on the server. The iPhone app is on the App
-Store; the Android one follows shortly.
+as the browser — nothing to enable on the server. Both are on their stores:
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6804433285">
@@ -39,6 +38,9 @@ Store; the Android one follows shortly.
       <source media="(prefers-color-scheme: dark)" srcset="docs/app-store-badge-white.svg">
       <img src="docs/app-store-badge-black.svg" height="48" alt="Download on the App Store">
     </picture>
+  </a>
+  <a href="https://play.google.com/store/apps/details?id=org.rotationmusic.app">
+    <img src="docs/google-play-badge.svg" height="48" alt="Get it on Google Play">
   </a>
 </p>
 
