@@ -33,7 +33,7 @@ Native apps: [iOS](https://github.com/Jannehy/rotation-ios) ·
 as the browser — nothing to enable on the server. Both are on their stores:
 
 <p align="center">
-  <a href="https://apps.apple.com/app/id6804433285"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/app-store-badge-white.svg"><img src="docs/app-store-badge-black.svg" width="144" height="48" alt="Download on the App Store"></picture></a>&nbsp;&nbsp;<a href="https://play.google.com/store/apps/details?id=org.rotationmusic.app"><img src="docs/google-play-badge.svg" width="163" height="48" alt="Get it on Google Play"></a>
+  <a href="https://apps.apple.com/app/id6804433285"><img src="docs/app-store-badge-black.svg" width="144" height="48" alt="Download on the App Store"></a>&nbsp;&nbsp;<a href="https://play.google.com/store/apps/details?id=org.rotationmusic.app"><img src="docs/google-play-badge.svg" width="163" height="48" alt="Get it on Google Play"></a>
 </p>
 
 ## How it fits together
