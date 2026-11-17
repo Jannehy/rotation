@@ -251,8 +251,11 @@ def create_app() -> Flask:
         payload["years"] = years
         payload["user"] = describe(user_id)
         # Only for one's own recap: a friend's playlist is not ours to write.
-        payload["playlist"] = (_wrapped_json(user_id, year)
-                               if user_id == viewer else None)
+        # And only once the year has reached its first of December – before
+        # that the hundred songs are a sketch, not a keepsake.
+        offer = (user_id == viewer
+                 and periods.playlist_open(year, cfg.timezone))
+        payload["playlist"] = _wrapped_json(user_id, year) if offer else None
         return jsonify(payload)
 
     def _wrapped_json(user_id: str, year: int) -> dict:
@@ -284,6 +287,10 @@ def create_app() -> Flask:
         year = int(requested) if requested.isdigit() else (years[0] if years else 0)
         if not year or (years and year not in years):
             return jsonify({"error": "no-data"}), 404
+        # The clients hide the button before the first of December; an older
+        # one, or a direct call, is turned away here.
+        if not periods.playlist_open(year, cfg.timezone):
+            return jsonify({"error": "not-yet"}), 403
         lang = playlists.language(payload.get("lang")
                                   or request.headers.get("Accept-Language"))
         key = playlists.wrapped_key(year)

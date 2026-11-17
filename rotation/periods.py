@@ -105,6 +105,22 @@ def season(tz: ZoneInfo, now: datetime | None = None) -> dict:
     }
 
 
+def playlist_open(year: int, tz: ZoneInfo, now: datetime | None = None) -> bool:
+    """Whether a year may already be written as a playlist.
+
+    A year that is over can always be. The year one is still living in only
+    from the first of December, the day the recap steps forward: before that
+    the list is a sketch of an unfinished year, and offering it invites a
+    keepsake that is wrong by the time anyone looks at it. From the first of
+    December on the button stays, so the same playlist can be written again
+    in January, when the year really is complete.
+    """
+    now = now or datetime.now(tz)
+    if year != now.year:
+        return year < now.year
+    return (now.month, now.day) >= SEASON_START
+
+
 def years_between(first: int, last: int, tz: ZoneInfo) -> list[int]:
     """Every calendar year that holds at least part of the given span."""
     if not first:

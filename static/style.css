@@ -499,7 +499,13 @@ button, select, input { font: inherit; color: inherit; }
 
 /* ── Share block on the Wrapped page ────────────────────────── */
 .share-slide { display: flex; flex-direction: column; gap: 14px; }
-.wplaylist { display: flex; flex-direction: column; gap: 9px; }
+/* The box is a flex child of a centring column, so it would otherwise
+   shrink to its text and its button would come out narrower than the
+   share button above it. The two belong at the same width. */
+.wplaylist {
+  display: flex; flex-direction: column; gap: 9px;
+  align-self: stretch; width: 100%;
+}
 .wplaylist .s { margin: 0; font-size: 13px; color: var(--ink-faint); }
 .wplaylist.dark { align-items: center; text-align: center; }
 .wplaylist.dark .s { color: rgba(255, 255, 255, .78); }
