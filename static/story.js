@@ -23,7 +23,7 @@ Object.assign(STRINGS.de, {
   "wrapped.playlist.title": "Das Jahr als Playlist",
   "wrapped.playlist.hint": "Die %s meistgehörten Songs aus %y, in genau dieser Reihenfolge, in deine Bibliothek geschrieben.",
   "wrapped.playlist.add": "Top %s als Playlist speichern",
-  "wrapped.playlist.done": "%n steht in deinen Playlists – %s Titel, der Reihe nach.",
+  "wrapped.playlist.done": "%n stehen in deinen Playlists – %s Titel, der Reihe nach.",
   "wrapped.playlist.again": "Neu schreiben",
   "season.notify.body": "Dein Jahr in Musik wartet auf dich.",
   "story.intro": "Dein Jahr in Musik",
