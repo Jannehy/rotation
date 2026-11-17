@@ -499,6 +499,10 @@ button, select, input { font: inherit; color: inherit; }
 
 /* ── Share block on the Wrapped page ────────────────────────── */
 .share-slide { display: flex; flex-direction: column; gap: 14px; }
+.wplaylist { display: flex; flex-direction: column; gap: 9px; }
+.wplaylist .s { margin: 0; font-size: 13px; color: var(--ink-faint); }
+.wplaylist.dark { align-items: center; text-align: center; }
+.wplaylist.dark .s { color: rgba(255, 255, 255, .78); }
 .share-controls {
   display: flex; align-items: center; justify-content: space-between;
   gap: 14px; flex-wrap: wrap;

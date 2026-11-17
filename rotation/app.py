@@ -250,7 +250,59 @@ def create_app() -> Flask:
         payload = wrapped.build(stats, user_id, year, cfg.timezone)
         payload["years"] = years
         payload["user"] = describe(user_id)
+        # Only for one's own recap: a friend's playlist is not ours to write.
+        payload["playlist"] = (_wrapped_json(user_id, year)
+                               if user_id == viewer else None)
         return jsonify(payload)
+
+    def _wrapped_json(user_id: str, year: int) -> dict:
+        """What the apps need to offer, or not offer, the playlist button."""
+        key = playlists.wrapped_key(year)
+        rule = next((r for r in rules.of(user_id) if r.range_key == key), None)
+        return {
+            "year": year,
+            "size": playlists.WRAPPED_SIZE,
+            "exists": bool(rule and rule.playlist_id),
+            "name": rule.name if rule else "",
+            "tracks": rule.tracks if rule else 0,
+            "created_at": rule.updated_at if rule else 0,
+        }
+
+    @app.post("/api/wrapped/playlist")
+    def wrapped_playlist():
+        """Writes the year's hundred songs into Navidrome, in order.
+
+        A snapshot, not a rule: it is written when asked for and never again,
+        unless it is asked for a second time. Pressing twice rewrites the same
+        playlist rather than leaving a copy behind, which is what the stored
+        rule is for.
+        """
+        user_id = require_user()
+        payload = request.get_json(silent=True) or {}
+        years = periods.years_between(**_bounds_args(user_id))
+        requested = str(payload.get("year") or "")
+        year = int(requested) if requested.isdigit() else (years[0] if years else 0)
+        if not year or (years and year not in years):
+            return jsonify({"error": "no-data"}), 404
+        lang = playlists.language(payload.get("lang")
+                                  or request.headers.get("Accept-Language"))
+        key = playlists.wrapped_key(year)
+        rule = rules.upsert(user_id, key, playlists.WRAPPED_SIZE,
+                            playlists.wrapped_name(year, lang), lang)
+        sid = session.get("sid")
+        creds = credentials.get(sid) if sid else None
+        written = keeper.refresh(rule, creds)
+        if written is None:
+            return jsonify({"error": "unreachable"}), 502
+        if not written:
+            return jsonify({"error": "no-data"}), 404
+        return jsonify({"ok": True, "playlist": _wrapped_json(user_id, year),
+                        "tracks": written})
+
+    def _bounds_args(user_id: str) -> dict:
+        bounds = stats.bounds(user_id)
+        return {"first": bounds["first_play"], "last": bounds["last_play"],
+                "tz": cfg.timezone}
 
     # -- one item at a time -----------------------------------------------
 
@@ -389,7 +441,12 @@ def create_app() -> Flask:
     @app.get("/api/playlists")
     def playlist_rules():
         user_id = require_user()
-        return jsonify({"playlists": [_rule_json(rule) for rule in rules.of(user_id)]})
+        # The recap playlist is stored as a rule for the same reason a rule
+        # exists - so pressing the button twice rewrites one playlist - but it
+        # is not one, and listing it here would offer to "update" a snapshot.
+        return jsonify({"playlists": [
+            _rule_json(rule) for rule in rules.of(user_id)
+            if not playlists.is_wrapped(rule.range_key)]})
 
     @app.post("/api/playlists")
     def playlist_create():

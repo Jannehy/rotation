@@ -20,6 +20,11 @@ Object.assign(STRINGS.de, {
   "playlist.working": "Wird angelegt …",
   "playlist.done": "%n steht in Navidrome – %s Titel, täglich aktualisiert.",
   "playlist.failed": "Die Playlist konnte nicht angelegt werden.",
+  "wrapped.playlist.title": "Das Jahr als Playlist",
+  "wrapped.playlist.hint": "Die %s meistgehörten Songs aus %y, in genau dieser Reihenfolge, in deine Bibliothek geschrieben.",
+  "wrapped.playlist.add": "Top %s als Playlist speichern",
+  "wrapped.playlist.done": "%n steht in deinen Playlists – %s Titel, der Reihe nach.",
+  "wrapped.playlist.again": "Neu schreiben",
   "season.notify.body": "Dein Jahr in Musik wartet auf dich.",
   "story.intro": "Dein Jahr in Musik",
   "story.intro.sub": "Zwölf Monate, ein paar Zahlen und zwei Fragen.",
@@ -61,6 +66,11 @@ Object.assign(STRINGS.en, {
   "playlist.working": "Creating …",
   "playlist.done": "%n is in Navidrome – %s tracks, refreshed daily.",
   "playlist.failed": "The playlist could not be created.",
+  "wrapped.playlist.title": "The year as a playlist",
+  "wrapped.playlist.hint": "The %s most played songs of %y, in that order, written into your library.",
+  "wrapped.playlist.add": "Save the top %s as a playlist",
+  "wrapped.playlist.done": "%n is in your playlists – %s tracks, in order.",
+  "wrapped.playlist.again": "Write it again",
   "season.notify.body": "Your year in music is waiting.",
   "story.intro": "Your year in music",
   "story.intro.sub": "Twelve months, a few numbers and two questions.",
@@ -292,6 +302,8 @@ function storyCards(data) {
         shareWrapped();
       });
       box.appendChild(button);
+      const playlist = wrappedPlaylistButton(data, true);
+      if (playlist) box.appendChild(playlist);
       return box;
     },
   });

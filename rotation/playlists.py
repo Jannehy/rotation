@@ -43,6 +43,63 @@ COMMENT = {
     "en": "Kept up to date automatically by Rotation.",
 }
 
+# The recap's keepsake: one year's hundred songs, in order, written once.
+#
+# Everything else here follows a rule and is rewritten daily. This one must
+# not be: a year's list is worth having precisely because it stops. It is
+# stored as a rule all the same, so that pressing the button twice rewrites
+# the same playlist instead of leaving a second one behind - but the daily
+# pass skips it, and it stays out of the managed list in the interface.
+WRAPPED_PREFIX = "wrapped:"
+WRAPPED_SIZE = 100
+WRAPPED_NAME = {
+    "de": "Deine Top-Songs {year}",
+    "en": "Your Top Songs {year}",
+}
+WRAPPED_COMMENT = {
+    "de": "Deine meistgehörten Songs {year}, der Reihe nach – von Rotation.",
+    "en": "Your most played songs of {year}, in order – by Rotation.",
+}
+
+
+def wrapped_key(year: int) -> str:
+    return f"{WRAPPED_PREFIX}{year}"
+
+
+def is_wrapped(range_key: str) -> bool:
+    return range_key.startswith(WRAPPED_PREFIX)
+
+
+def wrapped_year(range_key: str) -> int | None:
+    if not is_wrapped(range_key):
+        return None
+    tail = range_key[len(WRAPPED_PREFIX):]
+    return int(tail) if tail.isdigit() else None
+
+
+def period_key(range_key: str) -> str:
+    """The period a rule is about. A recap key carries its own year."""
+    year = wrapped_year(range_key)
+    return str(year) if year else range_key
+
+
+def wrapped_name(year: int, lang: str = "en") -> str:
+    return WRAPPED_NAME[language(lang)].format(year=year)
+
+
+def wrapped_comment(year: int, lang: str = "en") -> str:
+    return WRAPPED_COMMENT[language(lang)].format(year=year)
+
+
+def display_name(range_key: str, size: int, lang: str = "en") -> str:
+    year = wrapped_year(range_key)
+    return wrapped_name(year, lang) if year else name_for(range_key, size, lang)
+
+
+def display_comment(range_key: str, lang: str = "en") -> str:
+    year = wrapped_year(range_key)
+    return wrapped_comment(year, lang) if year else comment_for(lang)
+
 
 def language(code: str | None) -> str:
     return "de" if (code or "").lower().startswith("de") else "en"
@@ -104,15 +161,16 @@ class PlaylistKeeper:
         creds = credentials or self.credentials(rule.user_id)
         if creds is None:
             return None
-        rng: Range = self.resolve(rule.user_id, rule.range_key)
+        rng: Range = self.resolve(rule.user_id, period_key(rule.range_key))
         tracks = self.stats.top_tracks(rule.user_id, rng, rule.size)
         if not tracks:
             return 0
         ids = [track["id"] for track in tracks]
-        name = name_for(rule.range_key, rule.size, rule.lang)
+        name = display_name(rule.range_key, rule.size, rule.lang)
         try:
             playlist_id = self.subsonic.write_playlist(
-                creds, name, ids, rule.playlist_id, comment_for(rule.lang))
+                creds, name, ids, rule.playlist_id,
+                display_comment(rule.range_key, rule.lang))
         except NavidromeUnavailable as exc:
             self.log(f"playlist: Navidrome unreachable – {exc}")
             return None
@@ -123,6 +181,10 @@ class PlaylistKeeper:
 
     def refresh_all(self) -> None:
         for rule in self.rules.all():
+            # A recap playlist is a snapshot of a year that is over. Rewriting
+            # it daily would quietly rearrange a keepsake.
+            if is_wrapped(rule.range_key):
+                continue
             if self.credentials(rule.user_id) is None:
                 continue
             try:

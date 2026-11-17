@@ -814,6 +814,14 @@ function renderWrapped(data) {
   facts.appendChild(grid);
   slides.appendChild(facts);
 
+  const playlist = wrappedPlaylistButton(data);
+  if (playlist) {
+    const slide = el("div", "slide");
+    slide.appendChild(el("div", "kicker", t("wrapped.playlist.title")));
+    slide.appendChild(playlist);
+    slides.appendChild(slide);
+  }
+
   slides.appendChild(shareSection(data));
 
   host.appendChild(slides);
@@ -847,6 +855,78 @@ function renderWrapped(data) {
   }
 }
 
+
+/* ── The year as a playlist ─────────────────────────────────── */
+
+/* What this visit has written, by year. The recap is not fetched again when
+   the story closes, so the page and the story agree through this. */
+const wrappedWritten = {};
+
+/* The year's most played songs, in order, written into Navidrome on request.
+   The same button belongs on the recap page and on the last story card, so
+   it is one function used twice – `dark` is the story, which is already full
+   and therefore gets neither the explaining line nor the second button.
+
+   Returns null where there is nothing to write: a friend's year and the demo
+   both arrive without a playlist block. */
+function wrappedPlaylistButton(data, dark = false) {
+  const info = data.playlist;
+  if (!info) return null;
+
+  const box = el("div", dark ? "wplaylist dark" : "wplaylist");
+  const note = el("p", "s");
+  const button = el("button", "btn primary");
+  box.appendChild(note);
+  box.appendChild(button);
+  let busy = false;
+
+  const hint = () => t("wrapped.playlist.hint")
+    .replace("%s", num(info.size)).replace("%y", info.year);
+
+  const draw = () => {
+    const made = wrappedWritten[info.year] || (info.exists ? info : null);
+    button.disabled = busy;
+    if (busy) {
+      button.hidden = false;
+      button.textContent = t("playlist.working");
+      return;
+    }
+    if (made) {
+      note.hidden = false;
+      note.textContent = t("wrapped.playlist.done")
+        .replace("%n", made.name).replace("%s", num(made.tracks));
+      // Until the year is over the list still grows, so writing it again has
+      // a point – but not in the story.
+      button.hidden = dark;
+      button.textContent = t("wrapped.playlist.again");
+    } else {
+      note.hidden = dark;
+      note.textContent = dark ? "" : hint();
+      button.hidden = false;
+      button.textContent = t("wrapped.playlist.add").replace("%s", num(info.size));
+    }
+  };
+
+  button.addEventListener("click", async (event) => {
+    // A tap inside the story steps to the next card; not this one.
+    event.stopPropagation();
+    if (busy) return;
+    busy = true;
+    draw();
+    try {
+      const result = await post("/api/wrapped/playlist",
+                                { year: info.year, lang: state.lang });
+      wrappedWritten[info.year] = result.playlist;
+    } catch {
+      toast(t("playlist.failed"));
+    }
+    busy = false;
+    draw();
+  });
+
+  draw();
+  return box;
+}
 
 /* The card, the palette choice and the button – one block at the end of the
    Wrapped page. */

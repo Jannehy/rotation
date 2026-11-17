@@ -30,10 +30,16 @@ themselves back into your library.
 
 Native apps: [iOS](https://github.com/Jannehy/rotation-ios) ·
 [Android](https://github.com/Jannehy/rotation-android). Both speak the same API
-as the browser — nothing to enable on the server. Both are on their stores:
+as the browser — nothing to enable on the server. The iPhone app is on the App
+Store; the Android one follows shortly.
 
 <p align="center">
-  <a href="https://apps.apple.com/app/id6804433285"><img src="docs/app-store-badge-black.svg" width="144" height="48" alt="Download on the App Store"></a>&nbsp;&nbsp;<a href="https://play.google.com/store/apps/details?id=org.rotationmusic.app"><img src="docs/google-play-badge.svg" width="163" height="48" alt="Get it on Google Play"></a>
+  <a href="https://apps.apple.com/app/id6804433285">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/app-store-badge-white.svg">
+      <img src="docs/app-store-badge-black.svg" height="48" alt="Download on the App Store">
+    </picture>
+  </a>
 </p>
 
 ## How it fits together
@@ -127,6 +133,20 @@ The refresh needs your Navidrome credentials, which Rotation only has while you
 are signed in. It keeps them in memory for as long as the process runs and
 writes them nowhere — so after a restart, the first sign-in re-arms the daily
 refresh.
+
+### The year as a playlist
+
+The recap offers one playlist of its own: the hundred most played songs of that
+year, in that order, named *Your Top Songs 2026* in the language the button was
+pressed in. It sits on the last card of the story and at the foot of the recap
+page.
+
+This one is a snapshot, not a rule. A year that is over does not change, and
+rewriting a keepsake every night would quietly rearrange it — so the daily pass
+skips it and it stays out of the list of maintained playlists. It is stored as a
+rule all the same, so pressing the button a second time rewrites the same
+playlist instead of leaving a copy behind. That is worth doing while the year is
+still running and the list is still growing.
 
 ## Demo mode
 
