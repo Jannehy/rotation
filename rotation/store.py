@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import sqlite3
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -86,12 +88,20 @@ class Store:
             conn.execute("ALTER TABLE playlist_rule ADD COLUMN "
                          "lang TEXT NOT NULL DEFAULT 'en'")
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        """One connection per `with` block: committed on success, rolled back
+        on an exception, and closed either way. The connection's own context
+        manager does the first two but never closes."""
         conn = sqlite3.connect(self.path, check_same_thread=False, timeout=10)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode = WAL")
-        conn.execute("PRAGMA foreign_keys = ON")
-        return conn
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA foreign_keys = ON")
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     # -- profiles ---------------------------------------------------------
 

@@ -10,6 +10,8 @@ from __future__ import annotations
 import hashlib
 import secrets
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,7 +42,15 @@ class Database:
     def __init__(self, path: Path):
         self.path = path
 
-    def connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def connect(self) -> Iterator[sqlite3.Connection]:
+        """Opens the database for one `with` block and closes it afterwards.
+
+        `with sqlite3.connect(...)` on its own only ends the transaction and
+        leaves the connection open until the garbage collector gets to it;
+        under gunicorn that kept around seventy handles on Navidrome's
+        database and its -wal file at a time.
+        """
         if not self.path.exists():
             raise NavidromeUnavailable(f"{self.path} does not exist")
         # `mode=ro` keeps SQLite from creating or changing anything. Navidrome
@@ -51,9 +61,12 @@ class Database:
             conn = sqlite3.connect(uri, uri=True, check_same_thread=False, timeout=5)
         except sqlite3.OperationalError as exc:
             raise NavidromeUnavailable(str(exc)) from exc
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA query_only = ON")
-        return conn
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA query_only = ON")
+            yield conn
+        finally:
+            conn.close()
 
     def check(self) -> None:
         """Fails loudly at start-up rather than quietly at the first request."""
